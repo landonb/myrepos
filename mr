@@ -2031,6 +2031,39 @@ sub modifyconfig {
 	close $out;
 }
 
+sub wrap_dispatch {
+	my $which=shift;
+	my $action=shift;
+	my $params=$@;
+	my $userfcn="${which}_dispatch";
+	my $command='';
+	foreach my $directory ($HOME_MR_CONFIG, $ENV{MR_CONFIG}) {
+		# Run equivalent of `dirname` and remove filename (.mrconfig) from path.
+		$directory=~s#/[^/]*$#/#;
+		if (exists $config{$directory}{DEFAULT} &&
+			exists $config{$directory}{DEFAULT}{$userfcn}
+		) {
+			my $user_code=$config{$directory}{DEFAULT}{$userfcn};
+			$command="set -e; ".$config{$directory}{DEFAULT}{lib}."\n".
+				"my_wrap_dispatch(){ ${user_code}\n }; my_wrap_dispatch ";
+		}
+	}
+	if ($command ne '') {
+		my $topdir='';
+		my $subdir='';
+		print "mr wrap_dispatch: $which: running >>$command<<\n" if $verbose;
+		my ($ret, $out)=runsh $action, $topdir, $subdir, $command, [$params], sub {
+			my $sh=shift;
+			system($sh);
+		};
+		if ($ret != 0) {
+			# The exit code is really at ($? >> 8), per
+			#   https://perldoc.perl.org/5.30.0/perlfunc.html#system-LIST
+			exit 1;
+		}
+	}
+}
+
 sub dispatch {
 	my $action=shift;
 
@@ -2420,7 +2453,9 @@ sub main {
 	#use Data::Dumper; print Dumper(\%config);
 
 	my $action=expandaction(shift @ARGV);
+	wrap_dispatch('setup', $action);
 	dispatch($action);
+	wrap_dispatch('teardown', $action);
 
 	showstats($action);
 	exitstats();
