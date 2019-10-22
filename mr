@@ -1426,7 +1426,7 @@ sub record {
 
 	if ($ret == OK) {
 		push @ok, $dir;
-		print "\n" unless $quiet || ($minimal && !$out);
+		print "\n" unless $quiet || ($minimal && (!$out || (!$print_action && !$print_dir)));
 	}
 	elsif ($ret == FAILED) {
 		if ($interactive) {
