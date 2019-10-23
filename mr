@@ -1441,7 +1441,7 @@ sub record {
 			system((getpwuid($<))[8], "-i");
 		}
 		push @failed, $dir;
-		print "\n";
+		print "\n" unless $quiet || ($minimal && !$out) || !$print_sep;
 	}
 	elsif ($ret == SKIPPED) {
 		push @skipped, $dir;
