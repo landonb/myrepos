@@ -789,6 +789,7 @@ my %configfiles;
 my %knownactions;
 my %alias;
 my (@ok, @failed, @skipped);
+my @include_stack;
 
 main();
 
@@ -1753,6 +1754,16 @@ sub loadconfig {
 	my $nextline = sub {
 		if ($included) {
 			$included--;
+			my $lastf = $include_stack[$#include_stack];
+			# Rocket ship operator also works:
+			#   $lastf->[1]++;
+			$lastf->[1]++;
+			$lastf->[2]--;
+			# print "mr: include--: on “$lastf->[0]” ($lastf->[1])\n" if $verbose;
+			if ($lastf->[2] == 0) {
+				# print "mr: done including \"$lastf->[0]\"\n" if $verbose;
+				pop(@include_stack);
+			}
 		}
 		else {
 			$included=undef;
@@ -1765,7 +1776,11 @@ sub loadconfig {
 	my $lineerror = sub {
 		my $msg=shift;
 		if (defined $included) {
-			die "mr: $msg at $f line $lineno, included line: $line\n";
+			my @lastf = @{pop(@include_stack)};
+			die "mr: $msg from \`include\` in"
+				." ‘$f’ on ll. $lineno, at line: “$line”"
+				." on ll. $lastf[1] of file(s) loaded by \`$lastf[0]\`"
+				."\n";
 		}
 		else {
 			die "mr: $msg at $f line $lineno\n";
@@ -1851,6 +1866,8 @@ sub loadconfig {
 					print STDERR "mr: include command exited nonzero ($?)\n";
 				}
 				$included += @inc;
+				my @file_meta = ($value, 0, scalar(@inc));
+				push(@include_stack, [@file_meta]);
 				unshift @lines, @inc;
 				next;
 			}
