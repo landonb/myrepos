@@ -770,6 +770,7 @@ our $print_cache=0;
 my $remove_cache=0;
 my $print_action=1;
 my $print_dir=1;
+my $print_sep=1;
 my $print_subdir=1;
 my $print_footer=1;
 my $directory=getcwd();
@@ -1431,7 +1432,7 @@ sub record {
 
 	if ($ret == OK) {
 		push @ok, $dir;
-		print "\n" unless $quiet || ($minimal && (!$out || (!$print_action && !$print_dir)));
+		print "\n" unless $quiet || ($minimal && !$out) || !$print_sep;
 	}
 	elsif ($ret == FAILED) {
 		if ($interactive) {
