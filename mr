@@ -2102,7 +2102,9 @@ sub wrap_dispatch {
 	my $params=$@;
 	my $userfcn="${which}_dispatch";
 	my $command='';
-	foreach my $directory ($HOME_MR_CONFIG, $ENV{MR_CONFIG}) {
+	my @cfgdirs = ($HOME_MR_CONFIG,);
+	push(@cfgdirs, $ENV{MR_CONFIG}) if ($HOME_MR_CONFIG ne $ENV{MR_CONFIG});
+	foreach my $directory (@cfgdirs) {
 		# Run equivalent of `dirname` and remove filename (.mrconfig) from path.
 		$directory=~s#/[^/]*$#/#;
 		if (exists $config{$directory}{DEFAULT} &&
