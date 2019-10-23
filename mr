@@ -2074,7 +2074,7 @@ sub consume_config_options {
 	foreach my $directory (@cfgdirs) {
 		# Run equivalent of `dirname` and remove filename (.mrconfig) from path.
 		$directory=~s#/[^/]*$#/#;
-		continue unless defined $config{$directory}{DEFAULT};
+		next unless defined $config{$directory}{DEFAULT};
 		# In lieu of calling findcommand, just look 'em up directly.
 		my %mr_cfg_dftl = %{$config{$directory}{DEFAULT}};
 		# MEH/2019-10-22: (lb): We could use introspection to DRY this code. E.g.,
