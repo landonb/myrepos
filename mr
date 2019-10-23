@@ -827,12 +827,14 @@ sub runsh {
 	        exists $config{$topdir}{$subdir}{lib} ?
 	               $config{$topdir}{$subdir}{lib}."\n" : "";
 	if ($verbose && (! defined $lastlib || $lastlib ne $lib)) {
-		print "mr library now: >>$lib<<\n";
+		# (lb): Too much blather.
+		#print "mr library now: >>$lib<<\n";
 		$lastlib=$lib;
 	}
 	my $shellcode="set -e;".$lib.
 		"my_sh(){ $command\n }; my_sh $quotedparams";
-	print "mr $action: running $action >>$command<<\n" if $verbose;
+	# (lb): Too much blather.
+	#print "mr $action: running $action >>$command<<\n" if $verbose;
 	$runner->($shellcode);
 }
 
@@ -2124,7 +2126,8 @@ sub wrap_dispatch {
 	if ($command ne '') {
 		my $topdir='';
 		my $subdir='';
-		print "mr wrap_dispatch: $which: running >>$command<<\n" if $verbose;
+		# (lb): Too much blather.
+		#print "mr wrap_dispatch: $which: running >>$command<<\n" if $verbose;
 		my ($ret, $out)=runsh $action, $topdir, $subdir, $command, [$params], sub {
 			my $sh=shift;
 			system($sh);
