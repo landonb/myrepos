@@ -773,6 +773,7 @@ my $print_dir=1;
 my $print_sep=1;
 my $print_subdir=1;
 my $print_footer=1;
+my $print_failed=1;
 my $directory=getcwd();
 my $have_pty=eval{require IO::Pty::Easy;IO::Pty::Easy->import();1;};
 my $terminal=-t STDOUT && $have_pty;
@@ -1251,7 +1252,7 @@ sub action {
 					print STDERR "mr $action: failed to execute: $!\n";
 				}
 				else {
-					print STDERR "mr $action: command failed\n";
+					print STDERR "mr $action: command failed\n" if $print_failed;
 				}
 				if (-e "$ENV{HOME}/.mrlog" && $action ne 'remember') {
 					# recreate original command line to
@@ -2093,6 +2094,10 @@ sub consume_config_options {
 		if (defined $mr_cfg_dftl{"no_print_sep${postfix}"}) {
 			$print_sep = !runsh_bool($mr_cfg_dftl{"no_print_sep${postfix}"});
 			print "mr apply_cfg_opt: \$print_sep${postfix}: $print_sep\n" if $verbose;
+		}
+		if (defined $mr_cfg_dftl{"no_print_failed${postfix}"}) {
+			$print_failed = !runsh_bool($mr_cfg_dftl{"no_print_failed${postfix}"});
+			print "mr apply_cfg_opt: \$print_failed${postfix}: $print_failed\n" if $verbose;
 		}
 	}
 }
