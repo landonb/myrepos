@@ -2052,6 +2052,50 @@ sub modifyconfig {
 	close $out;
 }
 
+sub runsh_bool {
+	my $command=shift;
+	my $action='';
+	my $topdir='';
+	my $subdir='';
+	my ($ret, $out)=runsh $action, $topdir, $subdir, $command, [], system;
+	# The exit code is really at ($? >> 8), per
+	#   https://perldoc.perl.org/5.30.0/perlfunc.html#system-LIST
+	return !($ret >> 8);
+}
+
+sub consume_config_options {
+	my $postfix = shift || '';
+	my @cfgdirs = ($HOME_MR_CONFIG,);
+	push(@cfgdirs, $ENV{MR_CONFIG}) if ($HOME_MR_CONFIG ne $ENV{MR_CONFIG});
+	foreach my $directory (@cfgdirs) {
+		# Run equivalent of `dirname` and remove filename (.mrconfig) from path.
+		$directory=~s#/[^/]*$#/#;
+		continue unless defined $config{$directory}{DEFAULT};
+		# In lieu of calling findcommand, just look 'em up directly.
+		my %mr_cfg_dftl = %{$config{$directory}{DEFAULT}};
+		# MEH/2019-10-22: (lb): We could use introspection to DRY this code. E.g.,
+		#  foreach my $global_opt ('print_minimal', 'no_print_action', ...) { ... }
+		# but then we'd have to handle the no_ prefix, and we'd sacrifice the
+		# readability of this code. So the following list of if-blocks is fine.
+		if (defined $mr_cfg_dftl{"print_minimal${postfix}"}) {
+			$minimal = runsh_bool($mr_cfg_dftl{"print_minimal${postfix}"});
+			print "mr apply_cfg_opt: \$minimal${postfix}: $minimal\n" if $verbose;
+		}
+		if (defined $mr_cfg_dftl{"no_print_action${postfix}"}) {
+			$print_action = !runsh_bool($mr_cfg_dftl{"no_print_action${postfix}"});
+			print "mr apply_cfg_opt: \$print_action${postfix}: $print_action\n" if $verbose;
+		}
+		if (defined $mr_cfg_dftl{"no_print_dir${postfix}"}) {
+			$print_dir = !runsh_bool($mr_cfg_dftl{"no_print_dir${postfix}"});
+			print "mr apply_cfg_opt: \$print_dir${postfix}: $print_dir\n" if $verbose;
+		}
+		if (defined $mr_cfg_dftl{"no_print_sep${postfix}"}) {
+			$print_sep = !runsh_bool($mr_cfg_dftl{"no_print_sep${postfix}"});
+			print "mr apply_cfg_opt: \$print_sep${postfix}: $print_sep\n" if $verbose;
+		}
+	}
+}
+
 sub wrap_dispatch {
 	my $which=shift;
 	my $action=shift;
@@ -2474,6 +2518,8 @@ sub main {
 	#use Data::Dumper; print Dumper(\%config);
 
 	my $action=expandaction(shift @ARGV);
+	consume_config_options();
+	consume_config_options("_${action}");
 	wrap_dispatch('setup', $action);
 	dispatch($action);
 	wrap_dispatch('teardown', $action);
