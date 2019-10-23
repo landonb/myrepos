@@ -1201,7 +1201,7 @@ sub action {
 		}
 
 		my $actionmsg = actionmsg($action, $fulldir);
-		print "$actionmsg\n" unless !$jobs || $jobs > 1 || $quiet || $minimal || $save_cache || $print_cache;
+		print "$actionmsg\n" unless !$actionmsg || !$jobs || $jobs > 1 || $quiet || $minimal || $save_cache || $print_cache;
 
 		my ($hookret, $hook_out)=hook("pre_$action", $topdir, $subdir);
 		return $hookret if $hookret != OK;
