@@ -2129,7 +2129,7 @@ sub wrap_dispatch {
 			my $sh=shift;
 			system($sh);
 		};
-		if ($ret != 0) {
+		if ($ret >> 8 != 0) {
 			# The exit code is really at ($? >> 8), per
 			#   https://perldoc.perl.org/5.30.0/perlfunc.html#system-LIST
 			exit 1;
