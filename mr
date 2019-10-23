@@ -812,7 +812,9 @@ sub runsh {
 	}
 	elsif ($command =~ /^\s*false\s*$/) {
 		$?=0;
-		return 1;
+		# Shift the error, as Perl puts the exit code at ($? >> 8), per
+		#   https://perldoc.perl.org/5.30.0/perlfunc.html#system-LIST
+		return 1 << 8;
 	}
 
 	my $quotedparams=join(" ", (map { shellquote($_) } @$params));
