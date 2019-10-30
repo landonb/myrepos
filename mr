@@ -42,6 +42,18 @@ B<mr> [options] [online|offline]
 
 B<mr> [options] remember action [params ...]
 
+B<mr> [options] infuse
+
+B<mr> [options] autocommit
+
+B<mr> [options] mystatus
+
+B<mr> [options] travel
+
+B<mr> [options] unpack
+
+B<mr> [options] ffssh
+
 =head1 DESCRIPTION
 
 B<mr> is a tool to manage all your version control repos. It can checkout,
