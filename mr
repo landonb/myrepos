@@ -2061,7 +2061,10 @@ sub runsh_bool {
 	my $action='';
 	my $topdir='';
 	my $subdir='';
-	my ($ret, $out)=runsh $action, $topdir, $subdir, $command, [], system;
+	my ($ret, $out)=runsh $action, $topdir, $subdir, $command, [], sub {
+		my $sh=shift;
+		system($sh);
+	};
 	# The exit code is really at ($? >> 8), per
 	#   https://perldoc.perl.org/5.30.0/perlfunc.html#system-LIST
 	return !($ret >> 8);
