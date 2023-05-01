@@ -1101,7 +1101,6 @@ sub action {
 	my $is_update=($action =~ /update/);
 
 	($ENV{MR_REPO}=$dir) =~ s!/$!!;
-	$ENV{MR_ACTION}=$action;
 
 	foreach my $testname ("skip", "deleted") {
 		next if $force && $testname eq "skip";
@@ -2532,6 +2531,7 @@ sub main {
 	#use Data::Dumper; print Dumper(\%config);
 
 	my $action=expandaction(shift @ARGV);
+	$ENV{MR_ACTION}=$action;
 	consume_config_options();
 	consume_config_options("_${action}");
 	wrap_dispatch('setup', $action);
