@@ -44,6 +44,8 @@ B<mr> [options] remember action [params ...]
 
 B<mr> [options] infuse
 
+B<mr> [options] infusePostRebase
+
 B<mr> [options] autocommit
 
 B<mr> [options] mystatus
