@@ -848,7 +848,7 @@ sub runsh {
 	my $shellcode="set -e;".$lib.
 		"my_sh(){ $command\n }; my_sh $quotedparams";
 	# (lb): Too much blather.
-	#print "mr $action: running $action >>$command<<\n" if $verbose;
+	#  print "mr $action: running $action >>$command<<\n" if $verbose;
 	$runner->($shellcode);
 }
 
