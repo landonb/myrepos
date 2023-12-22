@@ -1,3 +1,47 @@
+@@@@@@@@@@@@
+*my* myrepos
+@@@@@@@@@@@@
+
+A fork of
+`myrepos <https://myrepos.branchable.com/>`__,
+for Oh, My Repos! aka
+`ohmyrepos <https://github.com/landonb/ohmyrepos#😤>`__
+
+``ohmyrepos`` is a collection of ``myrepos``
+command extensions and actions
+
+This fork adds a number of features and bug fixes, including:
+
+- Optional setup and teardown functions
+
+- Specify application --options from config files
+
+- Avoid processing home config directory twice
+
+- Prettier output
+
+- Option to inhibit certain command-failed messages
+
+- Bug fixes to keep current with Perl
+
+- ``-x``/``--exitfirst`` option exits instantly on first failure
+
+*ALERT* — Please be aware the main ``release`` branch does not
+maintain consistent history. It is often (rarely) rebased
+against the upstream ``myrepos`` project.
+
+- Neither of these repos moves very fast, a half-dozen commits
+  a year or so. So not a big deal.
+
+- Just be aware this fork's history is sometimes (rarely) rewritten.
+
+- As a courtesy, the major version will be bumped whenever the
+  ``release`` branch is rebased.
+
+###########################
+Original ``myrepos`` README
+###########################
+
 myrepos, a tool to manage all your version control repos
 
 You have a lot of version control repositories. Sometimes you want to
