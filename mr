@@ -405,6 +405,12 @@ Interactive mode. If a repository fails to be processed, a subshell will be
 started which you can use to resolve or investigate the problem. Exit the
 subshell to continue the mr run.
 
+=item -x
+
+=item --exitfirst
+
+Exit instantly on first failed repository action.
+
 =item -n [number]
 
 =item --no-recurse [number]
@@ -773,6 +779,7 @@ my $force=0;
 my $force_env=0;
 my $insecure=0;
 my $interactive=0;
+my $exitfirst=0;
 my $max_depth;
 my $no_chdir=0;
 my $chdir_top=0;
@@ -1451,7 +1458,11 @@ sub record {
 		print "\n" unless $quiet || ($minimal && !$out) || !$print_sep;
 	}
 	elsif ($ret == FAILED) {
-		if ($interactive) {
+		if ($exitfirst) {
+			print STDERR "mr: exit-first signaled\n";
+			exit 1;
+		}
+		elsif ($interactive) {
 			chdir($dir) unless $no_chdir;
 			print STDERR "mr: Starting interactive shell. Exit shell to continue.\n";
 			system((getpwuid($<))[8], "-i");
@@ -2455,6 +2466,7 @@ sub getopts {
 		"s|stats" => \$stats,
 		"k|insecure" => \$insecure,
 		"i|interactive" => \$interactive,
+		"x|exitfirst" => \$exitfirst,
 		"n|no-recurse:i" => \$max_depth,
 		"r|recurse:i" => sub { $max_depth = $_[1] ? $_[1] : ~0; },
 		"j|jobs:i" => sub { $jobs = $_[1]; $jobs_cmdline=1; },
