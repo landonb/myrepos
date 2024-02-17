@@ -376,6 +376,12 @@ Be verbose.
 Minimise output. If a command fails or there is any output then the usual
 output will be shown.
 
+=item -M
+
+=item --more-minimal
+
+Minimise minimised output. Same as --minimal, but don't print action: path.
+
 =item -q
 
 =item --quiet
@@ -773,6 +779,7 @@ use constant {
 my $config_overridden=0;
 my $verbose=0;
 my $minimal=0;
+my $more_minimal=0;
 my $quiet=0;
 my $stats=0;
 my $force=0;
@@ -966,6 +973,7 @@ sub terminal_friendly_spawn {
 	my $sh = shift;
 	my $quiet = shift;
 	my $minimal = shift;
+	my $more_minimal = shift;
 	my $jobs = shift;
 	my $ret_cache = shift;
 	my $output_cache = shift;
@@ -1011,17 +1019,17 @@ sub terminal_friendly_spawn {
 	}
 	my $ret = $?;
 	print $ret_cache "$ret" if defined $ret && defined $ret_cache;
-	return print_results($actionmsg, $quiet, $minimal, $output, $continuous_output, $ret);
+	return print_results($actionmsg, $quiet, $minimal, $more_minimal, $output, $continuous_output, $ret);
 }
 
 sub print_results {
-	my ($actionmsg, $quiet, $minimal, $output, $continuous_output, $ret) = @_;
+	my ($actionmsg, $quiet, $minimal, $more_minimal, $output, $continuous_output, $ret) = @_;
 	if ($quiet && $ret != 0) {
 		print "$actionmsg\n" if $actionmsg;
 		print STDERR $output;
 	}
 	elsif (!$quiet && (!$minimal || $output)) {
-		print "$actionmsg\n" if $actionmsg;
+		print "$actionmsg\n" if $actionmsg && !$more_minimal;
 		print $output;
 	}
 	return ($ret, ($output || $continuous_output) ? 1 : 0);
@@ -1084,7 +1092,7 @@ sub cache_remove {
 }
 
 sub cache_print {
-	my ($actionmsg, $quiet, $minimal, $ret_fh, $output_fh) = @_;
+	my ($actionmsg, $quiet, $minimal, $more_minimal, $ret_fh, $output_fh) = @_;
 	my $continuous_output = 0;
 	return (undef, undef) unless defined $ret_fh && defined $output_fh;
 	my $ret = do { local $/ = undef; <$ret_fh> };
@@ -1092,7 +1100,7 @@ sub cache_print {
 	return (undef, undef) unless defined $ret && defined $output;
 	$ret = int($ret) if defined $ret;
 	$output = strip_ansi_escape_codes($output) if !$terminal && defined $output;
-	return print_results($actionmsg, $quiet, $minimal, $output, $continuous_output, $ret);
+	return print_results($actionmsg, $quiet, $minimal, $more_minimal, $output, $continuous_output, $ret);
 }
 
 sub actionmsg {
@@ -1245,7 +1253,7 @@ sub action {
 			$command, \@ARGV, sub {
 				my $sh=shift;
 				if ($print_cache){
-					my ($ret, $out) = cache_print($actionmsg, $quiet, $minimal, $cache_ret_fh, $cache_output_fh);
+					my ($ret, $out) = cache_print($actionmsg, $quiet, $minimal, $more_minimal, $cache_ret_fh, $cache_output_fh);
 					return ($ret, $out) if defined $ret && defined $out;
 					# Reopen cache for writing if no cache was found
 					cache_close($cache_ret_fh, $cache_output_fh);
@@ -1253,7 +1261,7 @@ sub action {
 					($cache_ret_fh, $cache_output_fh) = cache_open($action, $fulldir, !$save_cache);
 				}
 				if (!$jobs || $jobs > 1 || $quiet || $minimal || (defined $cache_ret_fh && defined $cache_output_fh)) {
-					return terminal_friendly_spawn($actionmsg, $sh, $quiet, $minimal, $jobs, $cache_ret_fh, $cache_output_fh);
+					return terminal_friendly_spawn($actionmsg, $sh, $quiet, $minimal, $more_minimal, $jobs, $cache_ret_fh, $cache_output_fh);
 				}
 				else {
 					system($sh);
@@ -1345,7 +1353,7 @@ sub hook {
 	my ($ret,$out)=runsh $hook, $topdir, $subdir, $command, [], sub {
 			my $sh=shift;
 			if ($print_cache){
-				my ($ret, $out) = cache_print(undef, $quiet, $minimal, $cache_ret_fh, $cache_output_fh);
+				my ($ret, $out) = cache_print(undef, $quiet, $minimal, $more_minimal, $cache_ret_fh, $cache_output_fh);
 				return ($ret, $out) if defined $ret && defined $out;
 				# Reopen cache for writing if no cache was found
 				cache_close($cache_ret_fh, $cache_output_fh);
@@ -1353,7 +1361,7 @@ sub hook {
 				($cache_ret_fh, $cache_output_fh) = cache_open($hook, $fulldir, !$save_cache);
 			}
 			if (!$jobs || $jobs > 1 || $quiet || $minimal || (defined $cache_ret_fh && defined $cache_output_fh)) {
-				return terminal_friendly_spawn(undef, $sh, $quiet, $minimal, $jobs, $cache_ret_fh, $cache_output_fh);
+				return terminal_friendly_spawn(undef, $sh, $quiet, $minimal, $more_minimal, $jobs, $cache_ret_fh, $cache_output_fh);
 			}
 			else {
 				system($sh);
@@ -2117,6 +2125,10 @@ sub consume_config_options {
 			$minimal = runsh_bool($mr_cfg_dftl{"print_minimal${postfix}"});
 			print "mr apply_cfg_opt: \$minimal${postfix}: $minimal\n" if $verbose;
 		}
+		if (defined $mr_cfg_dftl{"print_more_minimal${postfix}"}) {
+			$more_minimal = runsh_bool($mr_cfg_dftl{"print_more_minimal${postfix}"});
+			print "mr apply_cfg_opt: \$more_minimal${postfix}: $more_minimal\n" if $verbose;
+		}
 		if (defined $mr_cfg_dftl{"no_print_action${postfix}"}) {
 			$print_action = !runsh_bool($mr_cfg_dftl{"no_print_action${postfix}"});
 			print "mr apply_cfg_opt: \$print_action${postfix}: $print_action\n" if $verbose;
@@ -2467,6 +2479,7 @@ sub getopts {
 		"force-env" => \$force_env,
 		"v|verbose" => \$verbose,
 		"m|minimal" => \$minimal,
+		"M|more-minimal" => \$more_minimal,
 		"q|quiet" => \$quiet,
 		"s|stats" => \$stats,
 		"k|insecure" => \$insecure,
@@ -2480,6 +2493,10 @@ sub getopts {
 	if (! $result || @ARGV < 1) {
 		die("Usage: mr [options] action [params ...]\n".
 		    "(Use mr help for man page.)\n");
+	}
+
+	if ($more_minimal) {
+		$minimal = $more_minimal;
 	}
 
 	$ENV{MR_SWITCHES}="";
