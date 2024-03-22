@@ -1099,17 +1099,22 @@ sub actionmsg {
 	my $action = shift;
 	my $fulldir = shift;
 	my $actionmsg = "";
-	if (! $no_chdir) {
-		$actionmsg .= "mr $action: " if $print_action;
-		$actionmsg .= $fulldir if $print_dir;
+
+	$actionmsg .= "mr $action" if $print_action;
+
+	if ($print_dir) {
+		$actionmsg .= ": " if $actionmsg;
+		$actionmsg .= $fulldir;
+
+		if ($print_subdir && $no_chdir) {
+			my $subdir=$directory;
+			$subdir=~s/^\Q$fulldir\E\/?//;
+
+			$actionmsg .= " (in subdir: $subdir)";
+		}
 	}
-	else {
-		my $s=$directory;
-		$s=~s/^\Q$fulldir\E\/?//;
-		$actionmsg .= "mr $action: " if $print_action;
-		$actionmsg .= $fulldir if $print_dir;
-		$actionmsg .= " (in subdir $s)" if $print_subdir;
-	}
+
+	return $actionmsg;
 }
 
 sub action {
