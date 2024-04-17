@@ -1135,6 +1135,13 @@ sub action {
 	my $is_update=($action =~ /update/);
 
 	($ENV{MR_REPO}=$dir) =~ s!/$!!;
+	# The unresolved PATH if config path is [/full/path],
+	# otherwise will be same as $dir, an absolute path.
+	# - REFER: See selectrepos, which calls absrepodir.
+	#   - Also dir=safe_abs_path, which sets topdir.
+	# - UCASE: Matching paths between LAN hosts using
+	#   different directory hierarchies.
+	($ENV{MR_REPO_RAW}=$fulldir) =~ s!/$!!;
 
 	foreach my $testname ("skip", "deleted") {
 		next if $force && $testname eq "skip";
