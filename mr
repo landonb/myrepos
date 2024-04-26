@@ -1126,7 +1126,7 @@ sub actionmsg {
 }
 
 sub action {
-	my ($action, $dir, $topdir, $subdir, $force_checkout) = @_;
+	my ($action, $dir, $topdir, $subdir, $order, $force_checkout) = @_;
 	my $fulldir=fulldir($topdir, $subdir);
 	my $checkout_dir;
 
@@ -1142,6 +1142,8 @@ sub action {
 	# - UCASE: Matching paths between LAN hosts using
 	#   different directory hierarchies.
 	($ENV{MR_REPO_RAW}=$fulldir) =~ s!/$!!;
+
+	$ENV{MR_ORDER}=$order;
 
 	foreach my $testname ("skip", "deleted") {
 		next if $force && $testname eq "skip";
@@ -1568,6 +1570,7 @@ sub find_repo_for {
 	foreach my $repo (reverse repolist()) {
 		my $topdir=$repo->{topdir};
 		my $subdir=$repo->{subdir};
+		my $order=$repo->{order};
 
 		next if $subdir eq 'DEFAULT';
 		my $dir=absrepodir($repo);
@@ -1575,7 +1578,7 @@ sub find_repo_for {
 		$dir.="/" unless $dir=~/\/$/;
 		$d.="/" unless $d=~/\/$/;
 		if ($d=~/^\Q$dir\E/) {
-			return ($dir, $topdir, $subdir);
+			return ($dir, $topdir, $subdir, $order);
 		}
 	}
 	return ();
@@ -1590,6 +1593,7 @@ sub selectrepos {
 	foreach my $repo (repolist()) {
 		my $topdir=$repo->{topdir};
 		my $subdir=$repo->{subdir};
+		my $order=$repo->{order};
 
 		next if $subdir eq 'DEFAULT';
 		my $dir=absrepodir($repo);
@@ -1603,7 +1607,7 @@ sub selectrepos {
 			do { } while (@a && @b && shift(@a) eq shift(@b));
 			next if @a > $max_depth || @b > $max_depth;
 		}
-		push @repos, [$dir, $topdir, $subdir];
+		push @repos, [$dir, $topdir, $subdir, $order];
 	}
 	if (! @repos) {
 		# fallback to find a leaf repo
