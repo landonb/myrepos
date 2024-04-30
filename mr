@@ -1205,6 +1205,23 @@ sub action {
 		system(qw(mkdir -p --), $dir);
 	}
 
+	if ($no_chdir && (defined $max_depth) && ($max_depth == 0)
+		&& (safe_abs_path(getcwd()) ne $ENV{MR_REPO})
+	) {
+		# Means selectrepos walked *up* to find OMR project root;
+		# and that user specified -n/--no-recurse, which we take
+		# to mean they'd be flabbergasted if the current directory
+		# or the one they specified is not the project root.
+		# - Another way to consider this: -n means don't recurse
+		#   *up*, either.
+		print STDERR "mr $action: Cannot run action from subdir when -n/--no-recurse\n";
+		print STDERR "mr $action: Project root detected at: $ENV{MR_REPO}\n";
+		# TMI:
+		#  print STDERR "- Perhaps: remove '-n' option; fix the '-d' path; change directories;\n";
+		#  print STDERR "  wire the current directory into your config; or try '-c' and '-t' options\n";
+		return FAILED;
+	}
+
 	if (! $no_chdir && ! chdir($dir)) {
 		print STDERR "mr $action: failed to chdir to $dir: $!\n";
 		return FAILED;
