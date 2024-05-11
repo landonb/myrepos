@@ -1869,6 +1869,8 @@ sub loadconfig {
 		}
 	};
 
+	$config{$dir}{DEFAULT}{lib}.="\n"."export MR_SECTION_CONFIG=\"$f\""."\n";
+
 	while (@lines) {
 		$_=$nextline->();
 
@@ -1930,7 +1932,24 @@ sub loadconfig {
 
 			if ($parameter eq "include") {
 				print "mr: including output of \"$value\"\n" if $verbose;
-				my @inc=`$value`;
+				# USAGE: Use `mr_cat`, not `cat`, to source files; then project
+				#        knows path to its config.
+				# BWARE: Don't use `mr_cat` to include project config within
+				#        a project because `mr_cat` wraps itself in [DEFAULT]s.
+				my @inc=`
+					mr_cat () {
+						local old_val_var=\"_OUTER_CONFIG_\$( \\
+							head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c10
+						)\";
+						printf "%s\n%s\n%s\n" "[DEFAULT]" \\
+							"lib = \${old_val_var}=\"\\\${MR_SECTION_CONFIG}\"" \\
+							"  export MR_SECTION_CONFIG=\"\$(realpath -- \"\$1\")\"";
+						cat -- "\$1";
+						printf "%s\n%s\n" "[DEFAULT]" \\
+							"lib = export MR_SECTION_CONFIG=\\\${\${old_val_var}}";
+					};
+					$value
+				`;
 				if ($?) {
 					print STDERR "mr: include command exited nonzero ($?)\n";
 				}
