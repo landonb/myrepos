@@ -807,6 +807,7 @@ my $directory=getcwd();
 my $have_pty=eval{require IO::Pty::Easy;IO::Pty::Easy->import();1;};
 my $terminal=-t STDOUT && $have_pty;
 my $erase_line=$terminal && eval{require Term::Cap;my $t=Term::Cap->Tgetent();$t->Tputs('ce');};
+$ENV{MR_SKIPPED}=0;
 
 eval { require File::HomeDir; $ENV{HOME} = File::HomeDir->my_home; 1; };
 my $HOME_MR_CONFIG = "$ENV{HOME}/.mrconfig";
@@ -1146,9 +1147,9 @@ sub action {
 
 	$ENV{MR_ORDER}=$order;
 
-	foreach my $testname ("skip", "deleted") {
-		next if $force && $testname eq "skip";
+	$ENV{MR_SKIPPED}=0;
 
+	foreach my $testname ("skip", "deleted") {
 		my $testcommand=findcommand($testname, $dir, $topdir, $subdir, $is_checkout);
 
 		if (defined $testcommand) {
@@ -1178,8 +1179,14 @@ sub action {
 					print "mr $action: skip $dir deleted\n" if $verbose;
 					return DELETED;
 				}
-				print "mr $action: skip $dir skipped\n" if $verbose;
-				return SKIPPED;
+				# I.e., $testname eq "skip"
+				if ($force) {
+					$ENV{MR_SKIPPED}=1;
+				}
+				else {
+					print "mr $action: skip $dir skipped\n" if $verbose;
+					return SKIPPED;
+				}
 			}
 		}
 	}
