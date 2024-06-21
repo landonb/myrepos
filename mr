@@ -773,6 +773,7 @@ use constant {
 	FAILED => 1,
 	SKIPPED => 2,
 	ABORT => 3,
+	DELETED => 4,
 };
 
 # configurables
@@ -818,7 +819,7 @@ my %config;
 my %configfiles;
 my %knownactions;
 my %alias;
-my (@ok, @failed, @skipped);
+my (@ok, @failed, @skipped, @deleted);
 my @include_stack;
 
 main();
@@ -1174,6 +1175,8 @@ sub action {
 						print STDERR "mr error: $dir should be deleted yet still exists\n";
 						return FAILED;
 					}
+					print "mr $action: skip $dir deleted\n" if $verbose;
+					return DELETED;
 				}
 				print "mr $action: skip $dir skipped\n" if $verbose;
 				return SKIPPED;
@@ -1512,6 +1515,9 @@ sub record {
 	elsif ($ret == SKIPPED) {
 		push @skipped, $dir;
 	}
+	elsif ($ret == DELETED) {
+		push @deleted, $dir;
+	}
 	elsif ($ret == ABORT) {
 		exit 1;
 	}
@@ -1522,17 +1528,18 @@ sub record {
 
 sub showstats {
 	my $action=shift;
-	if (! @ok && ! @failed && ! @skipped) {
+	if (! @ok && ! @failed && ! @skipped && ! @deleted) {
 		die "mr $action: no repositories found to work on\n";
 	}
 	print "mr $action: finished (".join("; ",
 		showstat($#ok+1, "ok", "ok"),
 		showstat($#failed+1, "failed", "failed"),
 		showstat($#skipped+1, "skipped", "skipped"),
+		showstat($#deleted+1, "retired", "retired"),
 	).")\n" unless $quiet || $minimal || !$print_footer;
 	if ($stats) {
-		if (@skipped) {
-			print "mr $action: (skipped: ".join(" ", @skipped).")\n" unless $quiet || $minimal;
+		if (@skipped || @deleted) {
+			print "mr $action: (skipped: ".join(" ", @skipped, @deleted).")\n" unless $quiet || $minimal;
 		}
 		if (@failed) {
 			print STDERR "mr $action: (failed: ".join(" ", @failed).")\n";
