@@ -820,7 +820,7 @@ my %config;
 my %configfiles;
 my %knownactions;
 my %alias;
-my (@ok, @failed, @skipped, @deleted);
+my (@ok, @forced, @failed, @skipped, @deleted);
 my @include_stack;
 
 main();
@@ -1503,7 +1503,12 @@ sub record {
 	my $out=shift;
 
 	if ($ret == OK) {
-		push @ok, $dir;
+		if ($ENV{MR_SKIPPED} == 0) {
+			push @ok, $dir;
+		}
+		else {
+			push @forced, $dir;
+		}
 		print "\n" unless $quiet || ($minimal && !$out) || !$print_sep;
 	}
 	elsif ($ret == FAILED) {
@@ -1535,11 +1540,12 @@ sub record {
 
 sub showstats {
 	my $action=shift;
-	if (! @ok && ! @failed && ! @skipped && ! @deleted) {
+	if (! @ok && ! @forced && ! @failed && ! @skipped && ! @deleted) {
 		die "mr $action: no repositories found to work on\n";
 	}
 	print "mr $action: finished (".join("; ",
 		showstat($#ok+1, "ok", "ok"),
+		showstat($#forced+1, "forced", "forced"),
 		showstat($#failed+1, "failed", "failed"),
 		showstat($#skipped+1, "skipped", "skipped"),
 		showstat($#deleted+1, "retired", "retired"),
