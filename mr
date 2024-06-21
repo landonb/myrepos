@@ -2621,6 +2621,7 @@ sub main {
 	help(@ARGV) if $ARGV[0] eq 'help';
 
 	startingconfig();
+	$ENV{MR_ACTION}=$ARGV[0];
 	loadconfig($HOME_MR_CONFIG);
 	loadconfig($ENV{MR_CONFIG});
 	#use Data::Dumper; print Dumper(\%config);
