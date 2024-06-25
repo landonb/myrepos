@@ -490,6 +490,27 @@ of the repo before running any commands.
 
 This is used by the C<cache-mr-status.sh> shell extension.
 
+=item --no-chdir
+
+Do not change directory to the project repo before running action.
+
+ALERT: Beware this runs commands in the current working directory!
+
+This command is really only useful if you want to run a command
+on a project before it exists.
+
+- Note there's a similar use case, where you define a "fake" project
+  (i.e., one without a Git repo), which lets you define actions for
+  a particular directory.
+
+- In this case, you can stub out the "checkout" action , e.g.,
+  "checkout = true", or "checkout = mkdir -p ${MR_REPO}".
+
+- But when the project itself *is* a Git repo, but perhaps it's
+  behind a symlink you need to install, or perhaps you need to
+  perform some setup before you can run "checkout", then you
+  could define a separate action to call first with --no-chdir.
+
 =item -t
 
 =item --trust-all
@@ -791,6 +812,13 @@ my $exitfirst=0;
 my $max_depth;
 my $no_chdir=0;
 my $chdir_top=0;
+# 2024-06-24: (lb): There's already an internal $no_chdir whose mechanism
+# I cannot totally suss, it's enabled if $directory is not a project but
+# a leaf project is found? Or something like that. In any case, this is a
+# user option that inhibits cd'ing to MR_REPO, so the user can define
+# actions they can run before/without the project directory existing.
+# - Just be aware the action will run from user's current working directory.
+my $no_cd=0;
 my $jobs=1;
 my $jobs_cmdline=0;
 my $trust_all=0;
@@ -1232,9 +1260,11 @@ sub action {
 		return FAILED;
 	}
 
-	if (! $no_chdir && ! chdir($dir)) {
+	if (! $no_cd && ! $no_chdir && ! chdir($dir)) {
 		print STDERR "mr $action: failed to chdir to $dir: $!\n";
 		return FAILED;
+	} elsif ($no_cd) {
+		print STDERR "mr $action: ALERT: Running from local dir (--no-cd): " . getcwd() . "\n";
 	}
 	if (! defined $command) {
 		my $default_command=findcommand("${action}_default", $dir, $topdir, $subdir, $is_checkout);
@@ -2537,6 +2567,7 @@ sub getopts {
 		"cached" => \$print_cache,
 		"uncache" => \$remove_cache,
 		"top" => \$chdir_top,
+		"no-cd" => \$no_cd,
 		"no-print-action" => sub { $print_action = 0 },
 		"no-print-dir" => sub { $print_dir = 0 },
 		"no-print-subdir" => sub { $print_subdir = 0 },
