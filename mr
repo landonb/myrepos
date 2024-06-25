@@ -1252,8 +1252,8 @@ sub action {
 		# or the one they specified is not the project root.
 		# - Another way to consider this: -n means don't recurse
 		#   *up*, either.
-		print STDERR "mr $action: Cannot run action from subdir when -n/--no-recurse\n";
-		print STDERR "mr $action: Project root detected at: $ENV{MR_REPO}\n";
+		print STDERR "mr $action: cannot run action from subdir when -n/--no-recurse\n";
+		print STDERR "mr $action: project root detected at: $ENV{MR_REPO}\n";
 		# TMI:
 		#  print STDERR "- Perhaps: remove '-n' option; fix the '-d' path; change directories;\n";
 		#  print STDERR "  wire the current directory into your config; or try '-c' and '-t' options\n";
