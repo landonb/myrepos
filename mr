@@ -2245,6 +2245,16 @@ sub consume_config_options {
 	}
 }
 
+sub environize_opts {
+	# Expose as environs for config to use.
+	$ENV{MR_OPTS_QUIET} = $quiet;
+	$ENV{MR_OPTS_VERBOSE} = $verbose;
+	$ENV{MR_OPTS_MINIMAL} = $minimal;
+	$ENV{MR_OPTS_MORE_MINIMAL} = $more_minimal;
+	$ENV{MR_OPTS_PRINT_FOOTER} = $print_footer;
+	$ENV{MR_OPTS_STATS} = $stats;
+}
+
 sub wrap_dispatch {
 	my $which=shift;
 	my $action=shift;
@@ -2681,6 +2691,7 @@ sub main {
 	$ENV{MR_ACTION}=$action;
 	consume_config_options();
 	consume_config_options("_${action}");
+	environize_opts();
 	wrap_dispatch('setup', $action);
 	dispatch($action);
 	wrap_dispatch('teardown', $action);
