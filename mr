@@ -1579,7 +1579,7 @@ sub showstats {
 		showstat($#failed+1, "failed", "failed"),
 		showstat($#skipped+1, "skipped", "skipped"),
 		showstat($#deleted+1, "retired", "retired"),
-	).")\n" unless $quiet || $minimal || !$print_footer;
+	).")\n" unless ($quiet || $minimal || !$print_footer) && !$stats;
 	if ($stats) {
 		if (@skipped || @deleted) {
 			print "mr $action: (skipped: ".join(" ", @skipped, @deleted).")\n" unless $quiet || $minimal;
